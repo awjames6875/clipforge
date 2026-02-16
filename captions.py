@@ -10,7 +10,7 @@ import math
 
 logger = logging.getLogger(__name__)
 
-def generate_ass_captions(enhanced_data, template, output_path):
+def generate_ass_captions(enhanced_data, template, output_path, video_path=None):
     """
     Generate ASS caption file with word-by-word highlighting.
     
@@ -18,12 +18,40 @@ def generate_ass_captions(enhanced_data, template, output_path):
         enhanced_data (dict): Enhanced transcript data from ai_enhance.py
         template (dict): Template configuration
         output_path (str): Output ASS file path
+        video_path (str): Input video to detect resolution
         
     Returns:
         str: Path to generated ASS file
     """
     transcript_data = enhanced_data["transcript"]
     words = transcript_data["words"]
+    
+    # Detect actual video resolution
+    if video_path:
+        try:
+            import subprocess, json as _json
+            probe = subprocess.run(
+                ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', video_path],
+                capture_output=True, text=True
+            )
+            data = _json.loads(probe.stdout)
+            vs = [s for s in data['streams'] if s['codec_type'] == 'video'][0]
+            w, h = int(vs['width']), int(vs['height'])
+            # Check for rotation (Samsung phones store portrait as rotated landscape)
+            rotation = 0
+            if 'tags' in vs and 'rotate' in vs['tags']:
+                rotation = int(vs['tags']['rotate'])
+            if 'side_data_list' in vs:
+                for sd in vs['side_data_list']:
+                    if 'rotation' in sd:
+                        rotation = abs(int(sd['rotation']))
+            if rotation in (90, 270):
+                w, h = h, w  # Swap for rotated video
+            template["_video_width"] = w
+            template["_video_height"] = h
+            logger.info(f"Detected video resolution: {w}x{h} (rotation: {rotation}°)")
+        except Exception:
+            pass
     
     logger.info(f"Generating ASS captions: {len(words)} words")
     
@@ -54,9 +82,9 @@ def build_ass_header(template):
     highlight_style = template["styles"]["highlight"]
     hook_style = template["styles"].get("hook", main_style)
     
-    # Video resolution (assume 1080p for mobile-first content)
-    video_width = 1080
-    video_height = 1920
+    # Video resolution — detect from video or default to 1080x1920
+    video_width = template.get("_video_width", 1080)
+    video_height = template.get("_video_height", 1920)
     
     ass_header = f"""[Script Info]
 Title: ClipForge Generated Captions

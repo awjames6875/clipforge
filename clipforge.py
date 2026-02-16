@@ -173,7 +173,8 @@ Templates:
         caption_file = generate_ass_captions(
             enhanced_data, 
             template,
-            output_path=args.output.replace('.mp4', '.ass')
+            output_path=args.output.replace('.mp4', '.ass'),
+            video_path=args.input
         )
         
         # Step 4: Render Final Video
