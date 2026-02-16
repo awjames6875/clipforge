@@ -131,6 +131,17 @@ def apply_broll_overlays(clean_video, broll_suggestions, broll_folder, temp_dir,
         logger.warning("No B-roll files found, skipping B-roll overlay")
         return clean_video
     
+    # Get main video dimensions
+    import subprocess as _sp
+    probe_cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', str(clean_video)]
+    probe_out = _sp.run(probe_cmd, capture_output=True, text=True)
+    import json as _json
+    probe_data = _json.loads(probe_out.stdout)
+    vid_stream = [s for s in probe_data['streams'] if s['codec_type'] == 'video'][0]
+    main_w = int(vid_stream['width'])
+    main_h = int(vid_stream['height'])
+    logger.info(f"Main video: {main_w}x{main_h}")
+    
     # Match each suggestion to a B-roll file and track inputs
     matched = []  # list of (suggestion, broll_path, input_index)
     input_paths = []  # unique paths added as FFmpeg inputs
@@ -162,9 +173,11 @@ def apply_broll_overlays(clean_video, broll_suggestions, broll_folder, temp_dir,
         start_time = suggestion["start_time"]
         end_time = suggestion["end_time"]
         
-        # Scale B-roll to FULL SCREEN 1080x1920 — force fill, no black bars
+        # Scale B-roll to match EXACT main video dimensions — force fill, no black bars
+        # Uses main video width (W) and height (H) from input 0
         filter_parts.append(
-            f"[{input_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1[fs{i}]"
+            f"[{input_idx}:v]scale={main_w}:{main_h}:force_original_aspect_ratio=increase,"
+            f"crop={main_w}:{main_h}:(iw-{main_w})/2:(ih-{main_h})/2,setsar=1[fs{i}]"
         )
         # Full-screen overlay — voice audio continues underneath
         filter_parts.append(

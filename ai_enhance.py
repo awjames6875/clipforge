@@ -120,12 +120,20 @@ This should be the most attention-grabbing opening statement.
 
     if enable_broll:
         prompt += f"""TASK 3 - B-ROLL SUGGESTIONS:
-Suggest 3-5 strategic moments for B-roll overlay based on the content.
-Look for:
-- Visual concepts mentioned (objects, places, actions)
-- Moments that would benefit from visual support
-- Natural pauses or transitions
-- Scenes that could use visual emphasis
+Suggest 6-10 B-roll moments for RAPID CUTS (viral style like Hormozi/MrBeast).
+RULES:
+- Each B-roll MUST be 2-3 seconds MAX (never longer!)
+- B-roll should appear every 4-6 seconds throughout the video
+- MATCH what the speaker is saying at that exact moment
+- The search_query MUST describe a specific visual that matches the spoken words
+- Think: "what would a viewer WANT to see when they hear this?"
+- More B-roll = more engagement. Pack the video with quick cuts.
+
+Examples:
+- Speaker says "money" → search_query: "cash money bills close up"
+- Speaker says "employees" → search_query: "office team working together"  
+- Speaker says "sleeping" → search_query: "person sleeping peacefully bed"
+- Speaker says "AI tools" → search_query: "robot artificial intelligence screen"
 
 Available B-roll files: {broll_files[:10] if broll_files else 'None provided'}
 """
@@ -516,8 +524,8 @@ def _detect_broll_moments(words, full_text):
     moments = []
     used_times = []  # Avoid overlapping B-roll
     
-    MIN_GAP = 5.0  # Minimum seconds between B-roll moments
-    BROLL_DURATION = 3.0
+    MIN_GAP = 4.0  # Minimum seconds between B-roll moments (rapid cuts)
+    BROLL_DURATION = 2.5  # Max 2-3 seconds per B-roll (viral pacing)
     
     for i, word_data in enumerate(words):
         word = word_data.get("word", "").lower().strip().strip(".,!?\"'")
@@ -540,9 +548,9 @@ def _detect_broll_moments(words, full_text):
             })
             used_times.append(start)
             
-            # Max 4 B-roll moments per 60s of video
+            # Rapid cuts: ~1 B-roll every 5 seconds
             total_dur = words[-1]["end"] if words else 30
-            max_moments = max(2, int(total_dur / 15))
+            max_moments = max(4, int(total_dur / 5))
             if len(moments) >= max_moments:
                 break
     
