@@ -144,14 +144,14 @@ Templates:
         if not args.no_broll and enhanced_data.get("broll_suggestions"):
             broll_dir = args.broll or os.path.join(os.path.dirname(os.path.abspath(args.output)), "broll_cache")
             logger.info("Step 2.5/4: Fetching context-matched B-roll from Pexels...")
-            from broll_fetch import search_pexels_videos, download_video, get_pexels_key
-            api_key = get_pexels_key()
-            if api_key:
+            from broll_fetch import search_all_sources, download_video, get_pexels_key, get_pixabay_key
+            has_any_key = get_pexels_key() or get_pixabay_key()
+            if has_any_key:
                 os.makedirs(broll_dir, exist_ok=True)
                 for idx, suggestion in enumerate(enhanced_data["broll_suggestions"]):
                     query = suggestion.get("search_query", suggestion.get("description", "trending"))
                     trigger = suggestion.get("trigger_word", suggestion.get("trigger_phrase", f"clip{idx}"))
-                    results = search_pexels_videos(query, api_key, count=1, orientation="portrait")
+                    results = search_all_sources(query, count=2, orientation="portrait")
                     if results:
                         clip = results[0]
                         safe_trigger = str(trigger).replace(" ", "_")[:20]
@@ -166,7 +166,7 @@ Templates:
                 args.broll = broll_dir
                 logger.info(f"✅ B-roll matched to {len(enhanced_data['broll_suggestions'])} transcript moments")
             else:
-                logger.warning("No PEXELS_API_KEY — skipping B-roll fetch")
+                logger.warning("No PEXELS_API_KEY or PIXABAY_API_KEY — skipping B-roll fetch")
         
         # Step 3: Generate Captions
         logger.info("Step 3/4: Generating ASS captions...")

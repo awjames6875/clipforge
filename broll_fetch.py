@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Pexels API - free, just needs a key from pexels.com/api
 PEXELS_API_URL = "https://api.pexels.com/videos/search"
-
-# Fallback: Pixabay API (also free)
 PIXABAY_API_URL = "https://pixabay.com/api/videos/"
 
 # Default B-roll search terms by category
@@ -274,3 +272,86 @@ if __name__ == "__main__":
         print("  Download pack:  python broll_fetch.py --pack money --output ./broll")
         print("  Search clips:   python broll_fetch.py --search 'cash falling' --count 3")
         print(f"\nAvailable packs: {', '.join(TRENDING_PACKS.keys())}")
+
+
+def get_pixabay_key():
+    """Get Pixabay API key from environment or .env file."""
+    key = os.getenv('PIXABAY_API_KEY')
+    if key:
+        return key
+    env_path = os.path.expanduser('~/.openclaw/.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                if line.startswith('PIXABAY_API_KEY='):
+                    return line.split('=', 1)[1].strip()
+    return None
+
+
+def search_pixabay_videos(query, api_key, count=3, orientation="vertical", min_duration=3, max_duration=15):
+    """Search Pixabay for stock video clips."""
+    params = {
+        "key": api_key,
+        "q": query,
+        "per_page": count,
+        "video_type": "film",
+        "safesearch": "true",
+        "order": "popular",
+    }
+    
+    try:
+        resp = requests.get(PIXABAY_API_URL, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        results = []
+        for video in data.get("hits", []):
+            duration = video.get("duration", 0)
+            if min_duration <= duration <= max_duration:
+                # Get medium or large video file
+                videos = video.get("videos", {})
+                best = videos.get("medium", videos.get("large", videos.get("small", {})))
+                
+                if best and best.get("url"):
+                    w = best.get("width", 0)
+                    h = best.get("height", 0)
+                    results.append({
+                        "id": video["id"],
+                        "query": query,
+                        "duration": duration,
+                        "width": w,
+                        "height": h,
+                        "url": best["url"],
+                        "photographer": video.get("user", "Unknown"),
+                        "source": "pixabay",
+                    })
+        
+        return results
+    except Exception as e:
+        logger.warning(f"Pixabay search failed for '{query}': {e}")
+        return []
+
+
+def search_all_sources(query, count=2, orientation="portrait"):
+    """Search BOTH Pexels and Pixabay, return best results combined."""
+    all_results = []
+    
+    pexels_key = get_pexels_key()
+    if pexels_key:
+        pexels_results = search_pexels_videos(query, pexels_key, count=count, orientation=orientation)
+        for r in pexels_results:
+            r["source"] = "pexels"
+        all_results.extend(pexels_results)
+    
+    pixabay_key = get_pixabay_key()
+    if pixabay_key:
+        px_orientation = "vertical" if orientation == "portrait" else "horizontal"
+        pixabay_results = search_pixabay_videos(query, pixabay_key, count=count, orientation=px_orientation)
+        all_results.extend(pixabay_results)
+    
+    if not all_results:
+        logger.warning(f"No results from any source for: {query}")
+    else:
+        logger.info(f"Found {len(all_results)} clips for '{query}' (Pexels: {len([r for r in all_results if r.get('source')=='pexels'])}, Pixabay: {len([r for r in all_results if r.get('source')=='pixabay'])})")
+    
+    return all_results
