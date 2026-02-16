@@ -67,7 +67,7 @@ def enhance_with_ai(transcript_data, template, enable_broll=True, broll_folder=N
     try:
         # Call Claude API
         response = client.messages.create(
-            model="claude-3-sonnet-20240229",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[
                 {"role": "user", "content": prompt}
@@ -147,6 +147,7 @@ RESPONSE FORMAT (JSON):
       "start_time": 15.5,
       "end_time": 18.2,
       "description": "what to show",
+      "search_query": "specific Pexels search query to find matching stock footage (e.g. 'money cash falling', 'robot artificial intelligence', 'happy children playing')",
       "trigger_phrase": "phrase that triggers this B-roll",
       "suggested_file": "filename.mp4 or null if no specific file"
     },

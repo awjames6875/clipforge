@@ -148,18 +148,20 @@ Templates:
             api_key = get_pexels_key()
             if api_key:
                 os.makedirs(broll_dir, exist_ok=True)
-                for suggestion in enhanced_data["broll_suggestions"]:
+                for idx, suggestion in enumerate(enhanced_data["broll_suggestions"]):
                     query = suggestion.get("search_query", suggestion.get("description", "trending"))
+                    trigger = suggestion.get("trigger_word", suggestion.get("trigger_phrase", f"clip{idx}"))
                     results = search_pexels_videos(query, api_key, count=1, orientation="portrait")
                     if results:
                         clip = results[0]
-                        filename = f"broll_{suggestion['trigger_word']}_{clip['id']}.mp4"
+                        safe_trigger = str(trigger).replace(" ", "_")[:20]
+                        filename = f"broll_{safe_trigger}_{clip['id']}.mp4"
                         filepath = os.path.join(broll_dir, filename)
                         if not os.path.exists(filepath):
-                            logger.info(f"Downloading B-roll for '{suggestion['trigger_word']}': {query}")
+                            logger.info(f"Downloading B-roll for '{trigger}': {query}")
                             download_video(clip["url"], filepath)
                         else:
-                            logger.info(f"B-roll cached for '{suggestion['trigger_word']}'")
+                            logger.info(f"B-roll cached for '{trigger}'")
                         suggestion["suggested_file"] = filename
                 args.broll = broll_dir
                 logger.info(f"✅ B-roll matched to {len(enhanced_data['broll_suggestions'])} transcript moments")
