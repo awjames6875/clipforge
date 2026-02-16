@@ -387,11 +387,13 @@ def _fallback_enhance(transcript_data, template, enable_broll=True, broll_folder
     # Simple B-roll suggestions based on content
     broll_suggestions = []
     if enable_broll:
-        duration = words[-1]["end"] if words else 30
+        total_dur = words[-1]["end"] if words else 30
         # Suggest B-roll at ~25% and ~65% through
+        t1 = total_dur * 0.25
+        t2 = total_dur * 0.65
         broll_suggestions = [
-            {"timestamp": duration * 0.25, "duration": 3.0, "description": "Supporting visual"},
-            {"timestamp": duration * 0.65, "duration": 3.0, "description": "Supporting visual"},
+            {"start_time": t1, "end_time": t1 + 3.0, "description": "Supporting visual"},
+            {"start_time": t2, "end_time": t2 + 3.0, "description": "Supporting visual"},
         ]
     
     logger.info(f"Heuristic found {len(keywords)} keywords to highlight")

@@ -17,6 +17,7 @@ from transcribe import transcribe_video
 from ai_enhance import enhance_with_ai
 from captions import generate_ass_captions
 from render import render_final_video
+from broll_fetch import fetch_broll_for_transcript
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -138,6 +139,18 @@ Templates:
         # Ensure transcript is attached to enhanced data
         if "transcript" not in enhanced_data:
             enhanced_data["transcript"] = transcript_data
+        
+        # Step 2.5: Auto-fetch B-roll from Pexels if no local B-roll folder
+        if not args.no_broll:
+            broll_dir = args.broll or os.path.join(os.path.dirname(args.output), "broll_cache")
+            logger.info("Step 2.5/4: Fetching B-roll from Pexels...")
+            broll_clips = fetch_broll_for_transcript(transcript_data, broll_dir, max_clips=4)
+            if broll_clips:
+                args.broll = broll_dir
+                enhanced_data["auto_broll"] = broll_clips
+                logger.info(f"✅ {len(broll_clips)} B-roll clips fetched")
+            else:
+                logger.warning("No B-roll fetched (need PEXELS_API_KEY in ~/.openclaw/.env)")
         
         # Step 3: Generate Captions
         logger.info("Step 3/4: Generating ASS captions...")
