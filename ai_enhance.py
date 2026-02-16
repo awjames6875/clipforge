@@ -141,17 +141,28 @@ RULES:
 - Prefer MOTION footage (people doing things, objects moving, dynamic shots)
 - NO static images, NO abstract concepts — real, tangible visuals
 
-MATCHING EXAMPLES:
-- "I pay $50,000 a month" → "stacks of cash money hundred dollar bills"
-- "marketing team" → "marketing team brainstorming whiteboard office"
-- "nine employees" → "small business team working computers office"
-- "edit videos" → "video editor working premiere pro timeline"
-- "manage my CRM" → "business dashboard analytics computer screen"
-- "never call in sick" → "person working late night dedicated employee"
-- "run my businesses" → "entrepreneur multitasking multiple screens"
-- "do my content" → "content creator filming camera ring light"
+CRITICAL — UNDERSTAND THE CONTEXT FIRST:
+Before picking ANY B-roll, understand what the video is ABOUT. The B-roll must support the MESSAGE, not just match individual words literally.
 
-The B-roll should make the viewer think: "Wow, this person is LEGIT."
+For example:
+- If the video is about AI REPLACING human workers → show AI, robots, automation, futuristic tech — NOT human workers
+- If the video is about saving money → show luxury/results, NOT poverty
+- If the video is about a product → show the product in action, NOT generic stock
+
+STEP 1: Read the full transcript and identify the CORE MESSAGE
+STEP 2: For each B-roll moment, ask: "Does this visual SUPPORT the message?"
+STEP 3: search_query should reflect the MESSAGE context, not just the literal words
+
+MATCHING EXAMPLES:
+- Talking about AI employees: "nine employees" → "artificial intelligence robot working multiple screens automation" (NOT human office workers!)
+- Talking about AI employees: "edit videos" → "AI robot editing video futuristic screen automation" (NOT human editor)
+- Talking about AI employees: "manage my CRM" → "AI dashboard automated CRM analytics futuristic" (NOT person at desk)  
+- Talking about AI employees: "never call in sick" → "robot 24/7 always on automation tireless" (NOT human sleeping)
+- Talking about saving money: "$160 per month" → "small price tag affordable deal savings" 
+- Talking about expensive alternatives: "$50,000 a month" → "burning money expensive waste cash fire"
+- Talking about content creation: "do my content" → "AI generating content automated social media"
+
+The B-roll should make the viewer think: "Wow, this person figured out the FUTURE."
 
 Available B-roll files: {broll_files[:10] if broll_files else 'None provided'}
 """
