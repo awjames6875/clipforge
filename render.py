@@ -119,96 +119,76 @@ def create_clean_video(input_video, temp_dir):
     return clean_video
 
 def apply_broll_overlays(clean_video, broll_suggestions, broll_folder, temp_dir, whoosh_volume):
-    """Apply B-roll overlays at suggested timestamps."""
+    """Apply full-screen B-roll overlays at suggested timestamps (Submagic style)."""
     
     if not broll_suggestions:
         return clean_video
     
     logger.info(f"Applying {len(broll_suggestions)} B-roll overlays...")
     
-    # Get available B-roll files
     broll_files = get_broll_files(broll_folder)
     if not broll_files:
         logger.warning("No B-roll files found, skipping B-roll overlay")
         return clean_video
     
-    # Build complex filter for B-roll overlays
-    filter_complex = build_broll_filter(broll_suggestions, broll_files, broll_folder, whoosh_volume)
+    # Match each suggestion to a B-roll file and track inputs
+    matched = []  # list of (suggestion, broll_path, input_index)
+    input_paths = []  # unique paths added as FFmpeg inputs
+    path_to_index = {}  # path → input index
     
-    if not filter_complex:
-        return clean_video
-    
-    broll_video = temp_dir / "video_with_broll.mp4"
-    
-    # Build FFmpeg command with complex filter
-    cmd = [
-        'ffmpeg', '-y',
-        '-i', str(clean_video)
-    ]
-    
-    # Add B-roll inputs
-    used_files = set()
     for suggestion in broll_suggestions:
         broll_file = select_broll_file(suggestion, broll_files)
-        if broll_file:
-            broll_path = Path(broll_folder) / broll_file
-            if broll_path.exists() and str(broll_path) not in used_files:
-                cmd.extend(['-i', str(broll_path)])
-                used_files.add(str(broll_path))
+        if not broll_file:
+            continue
+        broll_path = str(Path(broll_folder) / broll_file)
+        if not Path(broll_path).exists():
+            continue
+        
+        if broll_path not in path_to_index:
+            idx = len(input_paths) + 1  # +1 because input 0 is the main video
+            path_to_index[broll_path] = idx
+            input_paths.append(broll_path)
+        
+        matched.append((suggestion, broll_path, path_to_index[broll_path]))
     
+    if not matched:
+        return clean_video
+    
+    # Build filter complex
+    filter_parts = []
+    current_label = "[0:v]"
+    
+    for i, (suggestion, broll_path, input_idx) in enumerate(matched):
+        start_time = suggestion["start_time"]
+        end_time = suggestion["end_time"]
+        
+        # Scale B-roll to FULL SCREEN portrait, crop to fill
+        filter_parts.append(
+            f"[{input_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[fs{i}]"
+        )
+        # Full-screen overlay — voice audio continues underneath
+        filter_parts.append(
+            f"{current_label}[fs{i}]overlay=0:0:enable='between(t,{start_time},{end_time})'[v{i}]"
+        )
+        current_label = f"[v{i}]"
+    
+    filter_parts.append(f"{current_label}copy[final]")
+    filter_complex = ';'.join(filter_parts)
+    
+    # Build FFmpeg command
+    broll_video = temp_dir / "video_with_broll.mp4"
+    cmd = ['ffmpeg', '-y', '-i', str(clean_video)]
+    for p in input_paths:
+        cmd.extend(['-i', p])
     cmd.extend([
         '-filter_complex', filter_complex,
         '-map', '[final]',
-        '-vcodec', 'libx264',
-        '-crf', '23',
-        '-preset', 'medium',
+        '-vcodec', 'libx264', '-crf', '23', '-preset', 'medium',
         str(broll_video)
     ])
     
     run_ffmpeg_command(cmd, "B-roll overlay failed")
-    
     return broll_video
-
-def build_broll_filter(broll_suggestions, broll_files, broll_folder, whoosh_volume):
-    """Build FFmpeg filter complex for B-roll overlays."""
-    
-    if not broll_suggestions:
-        return ""
-    
-    # For simplicity, implement picture-in-picture style overlay
-    # More complex transitions could be added later
-    
-    filter_parts = []
-    input_label = "[0:v]"
-    input_index = 1
-    
-    for i, suggestion in enumerate(broll_suggestions):
-        broll_file = select_broll_file(suggestion, broll_files)
-        if not broll_file:
-            continue
-        
-        start_time = suggestion["start_time"]
-        end_time = suggestion["end_time"]
-        duration = end_time - start_time
-        
-        # Scale B-roll to picture-in-picture size (top-right corner)
-        pip_filter = f"[{input_index}:v]scale=320:240[pip{i}]"
-        filter_parts.append(pip_filter)
-        
-        # Overlay B-roll on main video
-        overlay_filter = f"{input_label}[pip{i}]overlay=W-w-20:20:enable='between(t,{start_time},{end_time})'[v{i}]"
-        filter_parts.append(overlay_filter)
-        
-        input_label = f"[v{i}]"
-        input_index += 1
-    
-    if not filter_parts:
-        return ""
-    
-    # Final output
-    filter_parts.append(f"{input_label}copy[final]")
-    
-    return ';'.join(filter_parts)
 
 def select_broll_file(suggestion, broll_files):
     """Select appropriate B-roll file for a suggestion."""
