@@ -387,14 +387,7 @@ def _fallback_enhance(transcript_data, template, enable_broll=True, broll_folder
     # Simple B-roll suggestions based on content
     broll_suggestions = []
     if enable_broll:
-        total_dur = words[-1]["end"] if words else 30
-        # Suggest B-roll at ~25% and ~65% through
-        t1 = total_dur * 0.25
-        t2 = total_dur * 0.65
-        broll_suggestions = [
-            {"start_time": t1, "end_time": t1 + 3.0, "description": "Supporting visual"},
-            {"start_time": t2, "end_time": t2 + 3.0, "description": "Supporting visual"},
-        ]
+        broll_suggestions = _detect_broll_moments(words, full_text)
     
     logger.info(f"Heuristic found {len(keywords)} keywords to highlight")
     
@@ -404,3 +397,164 @@ def _fallback_enhance(transcript_data, template, enable_broll=True, broll_folder
         "hook_end_time": 3.0,
         "sections": [],
     }
+
+
+def _detect_broll_moments(words, full_text):
+    """
+    Scan transcript word-by-word to find B-roll moments that MATCH what's being said.
+    Each B-roll gets a specific Pexels search query based on the spoken content.
+    """
+    import re
+    
+    # Trigger phrases → Pexels search query (what to SHOW when they SAY this)
+    TRIGGER_MAP = {
+        # Money / Business
+        "money": "money cash dollars close up",
+        "cash": "money cash dollars close up",
+        "dollar": "dollar bills falling",
+        "dollars": "dollar bills falling",
+        "revenue": "money counting cash register",
+        "profit": "profit chart going up",
+        "income": "money cash luxury",
+        "cost": "money wallet payment",
+        "price": "price tag shopping",
+        "expensive": "luxury expensive lifestyle",
+        "cheap": "money savings piggy bank",
+        "free": "gift box surprise",
+        "pay": "payment credit card",
+        "afford": "money wallet cash",
+        "investment": "stock market trading",
+        "invest": "stock market trading",
+        "budget": "calculator budget planning",
+        "save": "money savings jar",
+        "500": "money cash five hundred dollars",
+        "thousand": "money stack thousands",
+        "million": "luxury mansion lifestyle",
+        
+        # Tech / AI
+        "ai": "artificial intelligence robot futuristic",
+        "robot": "robot artificial intelligence",
+        "automate": "robot automation factory",
+        "automation": "robot automation technology",
+        "software": "coding programming computer screen",
+        "computer": "laptop computer typing",
+        "app": "smartphone mobile app",
+        "technology": "futuristic technology hologram",
+        "algorithm": "data visualization matrix",
+        "system": "server room data center",
+        "digital": "digital screen interface",
+        "tool": "tools workshop equipment",
+        "tools": "tools workshop equipment",
+        
+        # Business
+        "business": "business meeting office professional",
+        "company": "corporate office building",
+        "client": "business handshake agreement",
+        "clients": "business meeting clients",
+        "customer": "customer service happy",
+        "customers": "crowd of people shopping",
+        "lead": "business leads funnel",
+        "leads": "phone notifications incoming",
+        "sales": "sales chart growth upward",
+        "marketing": "social media marketing phone",
+        "agency": "modern office team working",
+        "startup": "startup office whiteboard",
+        "scale": "rocket launch growth",
+        "growth": "plant growing timelapse",
+        "grow": "plant growing timelapse",
+        
+        # People / Kids / Family
+        "kids": "happy children playing outside",
+        "children": "children learning classroom",
+        "child": "child playing happy",
+        "parent": "parent and child together",
+        "parents": "family parents children happy",
+        "family": "happy family together",
+        "daycare": "daycare children playing colorful",
+        "school": "school classroom students",
+        "learn": "student studying learning",
+        "youth": "teenagers young people group",
+        "community": "community gathering people together",
+        "people": "diverse group of people",
+        
+        # Health / Therapy
+        "health": "wellness health meditation",
+        "therapy": "therapy counseling session peaceful",
+        "mental": "meditation peaceful mindfulness",
+        "wellness": "spa wellness relaxation",
+        "care": "caring hands heart",
+        "behavioral": "brain psychology colorful",
+        "treatment": "medical healthcare professional",
+        "healing": "nature peaceful healing zen",
+        
+        # Action / Motivation
+        "grind": "hustle working late night",
+        "hustle": "entrepreneur working hard",
+        "work": "person working focused laptop",
+        "success": "celebration success winning",
+        "goal": "target bullseye achievement",
+        "dream": "dreaming clouds sky beautiful",
+        "achieve": "trophy award celebration",
+        "win": "winning celebration confetti",
+        "sleep": "person sleeping bed peaceful",
+        "sleeping": "person sleeping bed peaceful",
+        "tired": "person tired exhausted",
+        
+        # Social / Content
+        "follow": "social media followers phone",
+        "subscribe": "youtube subscribe button",
+        "watch": "person watching phone screen",
+        "click": "finger clicking mouse cursor",
+        "viral": "phone notifications going viral",
+        "content": "content creator filming camera",
+        "video": "video camera filming production",
+        "social media": "social media apps phone scrolling",
+    }
+    
+    # Scan words to find trigger moments
+    moments = []
+    used_times = []  # Avoid overlapping B-roll
+    
+    MIN_GAP = 5.0  # Minimum seconds between B-roll moments
+    BROLL_DURATION = 3.0
+    
+    for i, word_data in enumerate(words):
+        word = word_data.get("word", "").lower().strip().strip(".,!?\"'")
+        start = word_data.get("start", 0)
+        
+        # Check if this word triggers B-roll
+        if word in TRIGGER_MAP:
+            # Check minimum gap from previous B-roll
+            too_close = any(abs(start - t) < MIN_GAP for t in used_times)
+            if too_close:
+                continue
+            
+            query = TRIGGER_MAP[word]
+            moments.append({
+                "start_time": start,
+                "end_time": start + BROLL_DURATION,
+                "description": query,
+                "trigger_word": word,
+                "search_query": query,
+            })
+            used_times.append(start)
+            
+            # Max 4 B-roll moments per 60s of video
+            total_dur = words[-1]["end"] if words else 30
+            max_moments = max(2, int(total_dur / 15))
+            if len(moments) >= max_moments:
+                break
+    
+    # If no triggers found, pick 2 evenly spaced generic moments
+    if not moments and words:
+        total_dur = words[-1]["end"]
+        t1, t2 = total_dur * 0.25, total_dur * 0.65
+        moments = [
+            {"start_time": t1, "end_time": t1 + 3.0, "description": "business motivation success",
+             "trigger_word": "auto", "search_query": "business motivation success"},
+            {"start_time": t2, "end_time": t2 + 3.0, "description": "technology digital future",
+             "trigger_word": "auto", "search_query": "technology digital future"},
+        ]
+    
+    logger.info(f"Found {len(moments)} B-roll moments: {[m['trigger_word'] for m in moments]}")
+    return moments

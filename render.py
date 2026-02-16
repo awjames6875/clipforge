@@ -162,9 +162,9 @@ def apply_broll_overlays(clean_video, broll_suggestions, broll_folder, temp_dir,
         start_time = suggestion["start_time"]
         end_time = suggestion["end_time"]
         
-        # Scale B-roll to FULL SCREEN portrait, crop to fill
+        # Scale B-roll to FULL SCREEN 1080x1920 — force fill, no black bars
         filter_parts.append(
-            f"[{input_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[fs{i}]"
+            f"[{input_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,setsar=1[fs{i}]"
         )
         # Full-screen overlay — voice audio continues underneath
         filter_parts.append(

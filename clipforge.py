@@ -140,17 +140,31 @@ Templates:
         if "transcript" not in enhanced_data:
             enhanced_data["transcript"] = transcript_data
         
-        # Step 2.5: Auto-fetch B-roll from Pexels if no local B-roll folder
-        if not args.no_broll:
-            broll_dir = args.broll or os.path.join(os.path.dirname(args.output), "broll_cache")
-            logger.info("Step 2.5/4: Fetching B-roll from Pexels...")
-            broll_clips = fetch_broll_for_transcript(transcript_data, broll_dir, max_clips=4)
-            if broll_clips:
+        # Step 2.5: Auto-fetch B-roll from Pexels matching each moment
+        if not args.no_broll and enhanced_data.get("broll_suggestions"):
+            broll_dir = args.broll or os.path.join(os.path.dirname(os.path.abspath(args.output)), "broll_cache")
+            logger.info("Step 2.5/4: Fetching context-matched B-roll from Pexels...")
+            from broll_fetch import search_pexels_videos, download_video, get_pexels_key
+            api_key = get_pexels_key()
+            if api_key:
+                os.makedirs(broll_dir, exist_ok=True)
+                for suggestion in enhanced_data["broll_suggestions"]:
+                    query = suggestion.get("search_query", suggestion.get("description", "trending"))
+                    results = search_pexels_videos(query, api_key, count=1, orientation="portrait")
+                    if results:
+                        clip = results[0]
+                        filename = f"broll_{suggestion['trigger_word']}_{clip['id']}.mp4"
+                        filepath = os.path.join(broll_dir, filename)
+                        if not os.path.exists(filepath):
+                            logger.info(f"Downloading B-roll for '{suggestion['trigger_word']}': {query}")
+                            download_video(clip["url"], filepath)
+                        else:
+                            logger.info(f"B-roll cached for '{suggestion['trigger_word']}'")
+                        suggestion["suggested_file"] = filename
                 args.broll = broll_dir
-                enhanced_data["auto_broll"] = broll_clips
-                logger.info(f"✅ {len(broll_clips)} B-roll clips fetched")
+                logger.info(f"✅ B-roll matched to {len(enhanced_data['broll_suggestions'])} transcript moments")
             else:
-                logger.warning("No B-roll fetched (need PEXELS_API_KEY in ~/.openclaw/.env)")
+                logger.warning("No PEXELS_API_KEY — skipping B-roll fetch")
         
         # Step 3: Generate Captions
         logger.info("Step 3/4: Generating ASS captions...")
