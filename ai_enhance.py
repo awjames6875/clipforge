@@ -98,42 +98,60 @@ def build_enhancement_prompt(text, template, enable_broll, broll_files, word_cou
     
     template_style = template["name"]
     
-    prompt = f"""Analyze this video transcript and enhance it for {template_style}-style captions:
+    prompt = f"""You are a VIRAL SHORT-FORM VIDEO EDITOR in the style of Alex Hormozi and MrBeast.
+
+Your job: make this video IMPOSSIBLE to scroll past. Every second must earn the next second of attention.
 
 TRANSCRIPT:
 {text}
 
+EDITING PHILOSOPHY (Alex Hormozi / MrBeast style):
+- RAPID CUTS keep dopamine flowing — viewers never get bored
+- Every B-roll must REINFORCE what's being said — visual proof of the words
+- Keywords get HIGHLIGHTED to burn into the viewer's brain
+- The HOOK must stop the scroll in the first 2 seconds
+- Numbers, money, and results ALWAYS get highlighted
+- B-roll creates FOMO — "this person has something I want"
+- Pacing: think TikTok viral, NOT corporate video
+
 TASK 1 - KEYWORD HIGHLIGHTING:
-Identify 8-15 impactful keywords/phrases that should be highlighted in {template_style} style.
+Pick 10-15 words/phrases that should PUNCH the viewer when highlighted.
 Focus on:
-- Power words that grab attention
-- Key concepts and topics
-- Emotional triggers
-- Action words and strong verbs
-- Numbers and statistics
+- Money amounts and numbers (these ALWAYS get highlighted)
+- Power words: "never", "every", "secret", "free", "only"
+- Results and proof: "employees", "businesses", "content"
+- Emotional triggers that make viewers feel something
+- Action words that create urgency
 
 TASK 2 - HOOK IDENTIFICATION:
-Identify the opening hook (first 3-5 seconds) that should use larger text size.
-This should be the most attention-grabbing opening statement.
+The opening hook (first 2-4 seconds) MUST stop the scroll.
+Pick the most shocking/intriguing statement. This gets BIG text.
 
 """
 
     if enable_broll:
-        prompt += f"""TASK 3 - B-ROLL SUGGESTIONS:
-Suggest 6-10 B-roll moments for RAPID CUTS (viral style like Hormozi/MrBeast).
-RULES:
-- Each B-roll MUST be 2-3 seconds MAX (never longer!)
-- B-roll should appear every 4-6 seconds throughout the video
-- MATCH what the speaker is saying at that exact moment
-- The search_query MUST describe a specific visual that matches the spoken words
-- Think: "what would a viewer WANT to see when they hear this?"
-- More B-roll = more engagement. Pack the video with quick cuts.
+        prompt += f"""TASK 3 - B-ROLL SUGGESTIONS (CRITICAL):
+You MUST suggest 8-12 B-roll moments. This is what makes the video VIRAL.
 
-Examples:
-- Speaker says "money" → search_query: "cash money bills close up"
-- Speaker says "employees" → search_query: "office team working together"  
-- Speaker says "sleeping" → search_query: "person sleeping peacefully bed"
-- Speaker says "AI tools" → search_query: "robot artificial intelligence screen"
+RULES:
+- Each B-roll is 2-3 seconds MAX — RAPID CUTS, never hold longer
+- B-roll every 3-5 seconds throughout the ENTIRE video — no long stretches of just face
+- EVERY B-roll must MATCH what the speaker is saying at that EXACT moment
+- search_query must be SPECIFIC and VISUAL — think stock footage that exists on Pexels
+- Prefer MOTION footage (people doing things, objects moving, dynamic shots)
+- NO static images, NO abstract concepts — real, tangible visuals
+
+MATCHING EXAMPLES:
+- "I pay $50,000 a month" → "stacks of cash money hundred dollar bills"
+- "marketing team" → "marketing team brainstorming whiteboard office"
+- "nine employees" → "small business team working computers office"
+- "edit videos" → "video editor working premiere pro timeline"
+- "manage my CRM" → "business dashboard analytics computer screen"
+- "never call in sick" → "person working late night dedicated employee"
+- "run my businesses" → "entrepreneur multitasking multiple screens"
+- "do my content" → "content creator filming camera ring light"
+
+The B-roll should make the viewer think: "Wow, this person is LEGIT."
 
 Available B-roll files: {broll_files[:10] if broll_files else 'None provided'}
 """
