@@ -1,0 +1,92 @@
+{
+  "name": "mrbeast",
+  "description": "MrBeast style - Bold colors, yellow highlights, large text with emoji support",
+  "version": "1.0",
+  
+  "styles": {
+    "main": {
+      "font": "Montserrat Black",
+      "size": 32,
+      "color": "&H00FFFFFF",
+      "outline_color": "&H00000000",
+      "background_color": "&H80000000",
+      "outline_width": 4,
+      "shadow_offset": 3,
+      "alignment": 2,
+      "margin_left": 40,
+      "margin_right": 40,
+      "margin_vertical": 120,
+      "bold": true
+    },
+    
+    "highlight": {
+      "font": "Montserrat Black",
+      "size": 34,
+      "color": "&H0000FFFF",
+      "outline_color": "&H00FF0000",
+      "background_color": "&H80000000",
+      "outline_width": 5,
+      "shadow_offset": 4,
+      "alignment": 2,
+      "margin_left": 40,
+      "margin_right": 40,
+      "margin_vertical": 120,
+      "bold": true
+    },
+    
+    "hook": {
+      "font": "Montserrat Black",
+      "size": 38,
+      "color": "&H0000FFFF",
+      "outline_color": "&H00FF0000",
+      "background_color": "&H90000000",
+      "outline_width": 6,
+      "shadow_offset": 5,
+      "alignment": 2,
+      "margin_left": 30,
+      "margin_right": 30,
+      "margin_vertical": 100,
+      "bold": true
+    }
+  },
+  
+  "text_processing": {
+    "transform": "title_case",
+    "max_chars_per_line": 35,
+    "max_duration_per_line": 4.0,
+    "word_wrap": true,
+    "emoji_support": true
+  },
+  
+  "colors": {
+    "primary": "#FFFFFF",
+    "highlight": "#FFFF00",
+    "secondary_highlight": "#FF0000", 
+    "outline": "#000000",
+    "background": "#000000"
+  },
+  
+  "animation": {
+    "word_highlight_duration": 0.4,
+    "fade_in_duration": 0.15,
+    "fade_out_duration": 0.15,
+    "bounce_effect": true
+  },
+  
+  "positioning": {
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "margin_bottom": 120
+  },
+  
+  "effects": {
+    "background_box": true,
+    "drop_shadow": true,
+    "glow_effect": false
+  },
+  
+  "ai_prompts": {
+    "keyword_focus": "exciting words, numbers, superlatives, challenge words, money amounts",
+    "style_context": "MrBeast high-energy content - focus on AMAZING, INCREDIBLE, CHALLENGE, BIG NUMBERS"
+  }
+}

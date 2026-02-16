@@ -1,0 +1,83 @@
+{
+  "name": "hormozi",
+  "description": "Alex Hormozi style - ALL CAPS, Impact font, green highlights",
+  "version": "1.0",
+  
+  "styles": {
+    "main": {
+      "font": "Impact",
+      "size": 28,
+      "color": "&H00FFFFFF",
+      "outline_color": "&H00000000",
+      "background_color": "&H00000000",
+      "outline_width": 3,
+      "shadow_offset": 2,
+      "alignment": 2,
+      "margin_left": 50,
+      "margin_right": 50,
+      "margin_vertical": 150,
+      "bold": true
+    },
+    
+    "highlight": {
+      "font": "Impact",
+      "size": 28,
+      "color": "&H0000FF00",
+      "outline_color": "&H00000000",
+      "background_color": "&H00000000",
+      "outline_width": 4,
+      "shadow_offset": 2,
+      "alignment": 2,
+      "margin_left": 50,
+      "margin_right": 50,
+      "margin_vertical": 150,
+      "bold": true
+    },
+    
+    "hook": {
+      "font": "Impact",
+      "size": 32,
+      "color": "&H0000FF00",
+      "outline_color": "&H00000000", 
+      "background_color": "&H00000000",
+      "outline_width": 4,
+      "shadow_offset": 3,
+      "alignment": 2,
+      "margin_left": 40,
+      "margin_right": 40,
+      "margin_vertical": 150,
+      "bold": true
+    }
+  },
+  
+  "text_processing": {
+    "transform": "uppercase",
+    "max_chars_per_line": 30,
+    "max_duration_per_line": 3.5,
+    "word_wrap": true
+  },
+  
+  "colors": {
+    "primary": "#FFFFFF",
+    "highlight": "#00FF00", 
+    "outline": "#000000",
+    "background": "transparent"
+  },
+  
+  "animation": {
+    "word_highlight_duration": 0.3,
+    "fade_in_duration": 0.1,
+    "fade_out_duration": 0.1
+  },
+  
+  "positioning": {
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "margin_bottom": 150
+  },
+  
+  "ai_prompts": {
+    "keyword_focus": "power words, money terms, results, secrets, proven methods",
+    "style_context": "Alex Hormozi aggressive sales style - focus on VALUE, RESULTS, and MONEY"
+  }
+}

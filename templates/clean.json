@@ -1,0 +1,92 @@
+{
+  "name": "clean",
+  "description": "Clean minimalist style - lowercase, thin font, subtle highlights",
+  "version": "1.0",
+  
+  "styles": {
+    "main": {
+      "font": "Inter",
+      "size": 24,
+      "color": "&H00F0F0F0",
+      "outline_color": "&H00404040",
+      "background_color": "&H00000000",
+      "outline_width": 2,
+      "shadow_offset": 1,
+      "alignment": 2,
+      "margin_left": 60,
+      "margin_right": 60,
+      "margin_vertical": 180,
+      "bold": false
+    },
+    
+    "highlight": {
+      "font": "Inter Medium",
+      "size": 24,
+      "color": "&H00FFD700",
+      "outline_color": "&H00404040",
+      "background_color": "&H20000000",
+      "outline_width": 2,
+      "shadow_offset": 1,
+      "alignment": 2,
+      "margin_left": 60,
+      "margin_right": 60,
+      "margin_vertical": 180,
+      "bold": false
+    },
+    
+    "hook": {
+      "font": "Inter Medium",
+      "size": 28,
+      "color": "&H00FFD700",
+      "outline_color": "&H00404040",
+      "background_color": "&H30000000",
+      "outline_width": 2,
+      "shadow_offset": 2,
+      "alignment": 2,
+      "margin_left": 50,
+      "margin_right": 50,
+      "margin_vertical": 180,
+      "bold": false
+    }
+  },
+  
+  "text_processing": {
+    "transform": "lowercase",
+    "max_chars_per_line": 40,
+    "max_duration_per_line": 4.5,
+    "word_wrap": true,
+    "preserve_punctuation": true
+  },
+  
+  "colors": {
+    "primary": "#F0F0F0",
+    "highlight": "#FFD700",
+    "outline": "#404040",
+    "background": "transparent"
+  },
+  
+  "animation": {
+    "word_highlight_duration": 0.25,
+    "fade_in_duration": 0.2,
+    "fade_out_duration": 0.2,
+    "subtle_transitions": true
+  },
+  
+  "positioning": {
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "margin_bottom": 180
+  },
+  
+  "effects": {
+    "background_box": false,
+    "drop_shadow": true,
+    "glow_effect": false,
+    "minimal_styling": true
+  },
+  
+  "ai_prompts": {
+    "keyword_focus": "key concepts, important nouns, actionable verbs, specific terms",
+    "style_context": "Minimalist educational content - focus on CLARITY, KEY CONCEPTS, and UNDERSTANDING"
+  }
+}
